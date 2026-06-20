@@ -1,0 +1,6 @@
+﻿interface:
+  display_name: "Project Master Control"
+  short_description: "主控线程并行开发与任务边界自动化"
+  default_prompt: "Use $project-master-control to confirm project requirements, generate AGENTS.md, and bootstrap bounded child-thread task packages."
+policy:
+  allow_implicit_invocation: true
