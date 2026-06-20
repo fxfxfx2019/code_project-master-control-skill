@@ -68,6 +68,11 @@ def main() -> int:
     loop.add_argument("--accept-reviewed", action="store_true")
     loop.add_argument("--include-frozen", action="store_true")
 
+    post_merge = sub.add_parser("post-merge", help="Recommend completion records, documentation merge, and child-thread archive after acceptance/merge")
+    post_merge.add_argument("--project-root", default=".")
+    post_merge.add_argument("--stage", default="current")
+    post_merge.add_argument("--write-report", action="store_true")
+
     args = parser.parse_args()
 
     if args.command == "takeover":
@@ -127,6 +132,12 @@ def main() -> int:
         if args.include_frozen:
             forwarded.append("--include-frozen")
         return run_script("manager_loop.py", forwarded)
+
+    if args.command == "post-merge":
+        forwarded = ["--project-root", args.project_root, "--stage", args.stage]
+        if args.write_report:
+            forwarded.append("--write-report")
+        return run_script("post_merge_cleanup.py", forwarded)
 
     raise SystemExit(f"Unknown command: {args.command}")
 

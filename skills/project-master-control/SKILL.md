@@ -321,6 +321,30 @@ There is no real merge. Treat acceptance as a state transition only: accepted, r
 
 After accepting a child result, the product manager thread must run the manager loop again. If the accepted result unlocks a waiting phase, dispatch the next phase automatically unless it requires a high-impact user decision.
 
+## Post-Merge Completion Consolidation
+
+After a child result is accepted or merged, the product manager thread must perform a completion consolidation step before treating the child as finished.
+
+Required actions:
+
+1. Update completion records:
+   - child `STATUS.md`: final state, verification, cleanup, remaining risk;
+   - child `HANDOFF.md`: final accepted summary and completion documents;
+   - `.agents/HANDOFF_SUMMARY.md`: accepted/merged decision and PM review result;
+   - `.agents/THREADS.md` and `.agents/PROGRESS.md`: accepted/merged/closed state;
+   - `.agents/DECISIONS.md`: user/PM decisions that affected acceptance, merge, or follow-up.
+2. Decide whether to merge documentation:
+   - keep `.agents/**` as the audit/resume trail by default;
+   - merge user-facing durable conclusions into project docs such as `README.md`, `CHANGELOG.md`, `docs/**`, roadmap, release notes, or architecture notes only when useful and allowed by the project;
+   - ask the user before deleting or pruning task packages, audit records, or historical handoff files.
+3. Decide whether to close/archive the child Codex thread:
+   - archive/close accepted child windows after acceptance/merge when no blocker, rework, pending PM/user decision, or follow-up task remains;
+   - keep child windows open when rework, blocker, pending confirmation, unresolved verification, or follow-up implementation remains;
+   - if a thread archive tool such as `set_thread_archived` is available and the thread id is known, use it; otherwise record `Child thread archive pending/manual` in `.agents/THREADS.md` or `.agents/PROGRESS.md`.
+4. Run `python scripts/pmc.py post-merge --project-root . --stage <stage> --write-report` when a stage has accepted/merged child work, then execute the PM decisions from the report.
+
+Closing a child thread is a product-manager housekeeping decision, not proof that the work was correct. The work must already have passed review, boundary checks, verification, and merge/acceptance gates.
+
 
 ## Frozen Draft Packages
 
@@ -450,6 +474,7 @@ On Windows PowerShell, prefer `.cmd` shims for Node package commands to avoid ex
   - `python scripts/pmc.py resume --project-root . --stage stage-01`
   - `python scripts/pmc.py boundary --thread .agents/threads/<thread-name>`
   - `python scripts/pmc.py review --thread .agents/threads/<thread-name>`
+  - `python scripts/pmc.py post-merge --project-root . --stage stage-01 --write-report`
 - Run `scripts/validate_task_package.py` before dispatching child threads; task packages with `TBD` in required fields are not ready.
 - Run `scripts/check_thread_boundaries.py --thread .agents/threads/<thread-name>` before accepting a child thread handoff.
 - Run `scripts/update_progress.py --project-root .` to refresh `.agents/PROGRESS.md` from child thread status files.
@@ -457,3 +482,4 @@ On Windows PowerShell, prefer `.cmd` shims for Node package commands to avoid ex
 - Run `scripts/resume_project.py --project-root . --stage <stage>` after interruption to recover context and choose the next action.
 - Run `scripts/generate_thread_prompts.py --project-root .` to generate concise child-thread startup prompts.
 - Run `scripts/review_thread_handoff.py --thread .agents/threads/<thread-name>` as the product-manager acceptance gate.
+- Run `scripts/post_merge_cleanup.py --project-root . --stage <stage> --write-report` after acceptance/merge to consolidate completion records, decide documentation merge, and decide child-thread archive/close actions.

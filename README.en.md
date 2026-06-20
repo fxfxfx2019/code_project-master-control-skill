@@ -14,7 +14,7 @@ This skill helps Codex run a bounded project workflow with:
 - per-thread `TASK.md`, `STATUS.md`, `ALLOWLIST.md`, and `HANDOFF.md`;
 - UI/UX design gates for SaaS, CRM, dashboard, admin, and complex workflow projects;
 - existing-project takeover mode for second development and optimization;
-- validation, boundary checks, handoff review, and product-manager loop scripts.
+- validation, boundary checks, handoff review, product-manager loop scripts, and post-merge completion consolidation.
 
 ## Install
 
@@ -43,6 +43,14 @@ Enable project-master-control and take over the current existing project for sec
 
 The Product Manager thread should then create or update `AGENTS.md`, generate `.agents/**`, validate task packages, create real child threads or worktrees when thread tools are available, and continue the manager loop until the stage is accepted, blocked, or waiting for child feedback.
 
+After child work is accepted or merged, use:
+
+```text
+python scripts/pmc.py post-merge --project-root . --stage <stage> --write-report
+```
+
+This helps the Product Manager thread update completion records, decide whether durable conclusions should be merged into formal project docs, and decide whether accepted child windows can be archived.
+
 ## Repository Layout
 
 ```text
@@ -60,4 +68,3 @@ skills/
 - Visible child thread titles default to English, for example `Child - Frontend - ui-01-web-productization`.
 - Product Manager threads should not directly edit production code unless explicitly authorized.
 - High-impact changes such as schema/API, architecture, dependency, security, permission, payment, and major UI direction require user confirmation.
-

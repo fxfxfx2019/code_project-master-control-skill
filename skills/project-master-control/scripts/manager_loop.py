@@ -192,6 +192,7 @@ def main() -> int:
     elif rework:
         print("Send rework prompts to rejected child threads.")
     elif accepted:
+        print("Run pmc.py post-merge --project-root . --stage <stage> --write-report to consolidate completion records, decide whether to merge durable docs, and archive accepted child windows when safe.")
         phase_threads = [t.name for t in threads if phase_number(t.name) is not None]
         if phase_threads:
             print("If accepted phase unlocks the next phase, update THREADS.md/PROGRESS.md and dispatch the next waiting phase.")

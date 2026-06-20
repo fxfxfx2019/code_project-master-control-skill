@@ -118,7 +118,7 @@ Execution rules:
 5. Modify only Allowed Write files.
 6. If the user asks for new requirements, optimization, scope changes, skipped verification/docs/cleanup, or unauthorized file edits, record it in STATUS.md and send it back to the Product Manager thread before executing.
 7. Stop and report if you hit forbidden files, architecture conflicts, database/API contract changes, test-scope changes, dependency changes, or possible overwrite of existing user changes.
-8. After completion, run required verification, clean temporary artifacts, update STATUS.md, and write HANDOFF.md.
+8. After completion, run required verification, clean temporary artifacts, update STATUS.md, and write HANDOFF.md, including Completion Documents when durable project docs should be updated or merged by the Product Manager thread.
 
 Output only progress, blockers, verification results, risks, Product Manager confirmation requests, and handoff summary.
 """

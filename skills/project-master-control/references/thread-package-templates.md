@@ -45,7 +45,7 @@ Stop when you need forbidden files, architecture changes, database/interface con
 
 ## Completion
 
-Run required verification, clean temporary artifacts, update STATUS.md, write HANDOFF.md.
+Run required verification, clean temporary artifacts, update STATUS.md, write HANDOFF.md, and list any durable project documents that should be updated or merged by the product manager thread.
 ```
 
 ## TASK.md
@@ -313,6 +313,10 @@ Not run yet.
 ## Cleanup
 
 Not completed yet.
+
+## Completion Documents
+
+- None yet.
 
 ## Boundary Check
 

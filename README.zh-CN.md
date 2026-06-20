@@ -14,7 +14,7 @@
 - 每个子线程都有 `TASK.md`、`STATUS.md`、`ALLOWLIST.md` 和 `HANDOFF.md`；
 - 对 SaaS、CRM、dashboard、后台管理、复杂业务流项目增加 UI/UX 设计门禁；
 - 支持已有项目接管、二次开发和优化；
-- 提供任务包校验、边界检查、handoff review 和产品经理循环脚本。
+- 提供任务包校验、边界检查、handoff review、产品经理循环脚本和汇聚后的完成记录处理。
 
 ## 安装
 
@@ -43,6 +43,14 @@ https://github.com/<owner>/<repo>/tree/main/skills/project-master-control
 
 启用后，Product Manager 线程应该创建或更新 `AGENTS.md`，生成 `.agents/**`，校验任务包，在线程工具可用时创建真实子线程或 worktree，并持续执行产品经理 loop，直到阶段验收、阻塞或进入等待子线程反馈状态。
 
+子线程结果被接收或合并后，可以运行：
+
+```text
+python scripts/pmc.py post-merge --project-root . --stage <stage> --write-report
+```
+
+它会帮助 Product Manager 线程更新完成记录，判断是否把长期有效结论合并到正式项目文档，并判断已接收的子线程窗口是否可以归档关闭。
+
 ## 仓库结构
 
 ```text
@@ -60,4 +68,3 @@ skills/
 - 子线程窗口标题默认英文，例如 `Child - Frontend - ui-01-web-productization`。
 - Product Manager 线程默认不直接写业务代码，除非用户明确授权。
 - schema/API、架构、依赖、安全、权限、支付、大型 UI 方向等高影响变更，需要用户确认。
-
