@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -50,31 +51,27 @@ def top_level_map(root: Path) -> str:
 
 def suggested_window_title(name: str) -> str:
     lower = name.lower()
+    tokens = set(re.split(r"[^a-z0-9]+", lower))
     rules = [
-        ("current-state-audit", "Audit"),
-        ("ui-ux", "UI/UX Design"),
-        ("design", "UI/UX Design"),
-        ("frontend", "Frontend"),
-        ("ui", "Frontend"),
-        ("backend", "Backend"),
-        ("platform", "Platform"),
-        ("knowledge", "Knowledge AI"),
-        ("data", "Data Connectors"),
-        ("connector", "Data Connectors"),
-        ("outbound", "Outbound"),
-        ("wecom", "WeCom"),
-        ("growth", "Growth Analytics"),
-        ("analytics", "Growth Analytics"),
-        ("delivery", "Delivery Hardening"),
-        ("hardening", "Delivery Hardening"),
-        ("test", "QA"),
-        ("acceptance", "QA"),
-        ("planning", "Planning"),
-        ("implementation", "Implementation"),
+        (lambda: "build" in tokens or "build-gate" in lower, "Build Gate"),
+        (lambda: "current-state-audit" in lower or {"current", "state", "audit"} <= tokens, "Audit"),
+        (lambda: "ui-ux" in lower or ("ui" in tokens and "ux" in tokens) or "design" in tokens, "UI/UX Design"),
+        (lambda: "frontend" in tokens or "front-end" in lower or "web" in tokens or "ui" in tokens, "Frontend"),
+        (lambda: "backend" in tokens, "Backend"),
+        (lambda: "platform" in tokens, "Platform"),
+        (lambda: "knowledge" in tokens, "Knowledge AI"),
+        (lambda: "data" in tokens or "connector" in tokens or "connectors" in tokens, "Data Connectors"),
+        (lambda: "outbound" in tokens, "Outbound"),
+        (lambda: "wecom" in tokens, "WeCom"),
+        (lambda: "growth" in tokens or "analytics" in tokens, "Growth Analytics"),
+        (lambda: "delivery" in tokens or "hardening" in tokens, "Delivery Hardening"),
+        (lambda: "test" in tokens or "acceptance" in tokens or "qa" in tokens, "QA"),
+        (lambda: "planning" in tokens, "Planning"),
+        (lambda: "implementation" in tokens, "Implementation"),
     ]
     label = "Task"
-    for token, title in rules:
-        if token in lower:
+    for matches, title in rules:
+        if matches():
             label = title
             break
     return f"Child - {label} - {name}"

@@ -114,7 +114,8 @@ def validate_thread(thread: Path, all_threads: list[Path] | None = None) -> tupl
     if is_frozen_or_draft(thread) and looks_active(thread):
         issues.append("thread is marked frozen/draft/not-dispatched but also appears active")
 
-    if "product-manager" in combined or "????" in combined:
+    pm_package_hint = f"{thread.name}\n{section(task, 'Thread')}".lower()
+    if "product-manager" in pm_package_hint or "product manager" in pm_package_hint or "\u4ea7\u54c1\u7ecf\u7406" in pm_package_hint:
         for item in allowed_writes:
             normalized = item.lower().lstrip("./")
             if normalized not in PM_ONLY_WRITES and not normalized.startswith(".agents/"):
@@ -167,7 +168,6 @@ def main() -> int:
 
     all_threads = threads if not args.thread else None
     any_issues = False
-    any_warnings = False
     for thread in threads:
         issues, warnings = validate_thread(thread, all_threads)
         print(f"# {thread.name}")
@@ -180,13 +180,12 @@ def main() -> int:
         else:
             print("Status: valid")
         if warnings:
-            any_warnings = True
             print("Warnings:")
             for item in warnings:
                 print(f"- {item}")
         print()
 
-    return 2 if any_issues else (1 if any_warnings else 0)
+    return 2 if any_issues else 0
 
 
 if __name__ == "__main__":

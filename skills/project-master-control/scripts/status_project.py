@@ -26,14 +26,16 @@ def section(text: str, name: str) -> str:
 def first_line(value: str, fallback: str = "Unknown") -> str:
     for line in value.splitlines():
         stripped = line.strip().lstrip("- ").strip()
-        if stripped and stripped.lower() not in {"none", "none.", "none yet.", "not completed yet.", "not run yet."}:
+        lowered = stripped.lower()
+        if stripped and lowered not in {"none", "none.", "none yet.", "n/a", "na", "not completed yet.", "not run yet.", "暂无", "无", "无。"}:
+            if any(fragment in lowered for fragment in ["if needed in future", "if needed later", "future if needed", "only if needed", "未来如果需要", "后续如需", "暂无需"]):
+                continue
             return stripped
     return fallback
 
 
 def real(value: str) -> bool:
-    stripped = value.strip().lower()
-    return bool(stripped) and stripped not in {"- none", "- none.", "none", "none.", "none yet.", "not completed yet.", "not run yet."}
+    return first_line(value, "") != ""
 
 
 def thread_id_for(threads_md: str, name: str) -> str:

@@ -37,8 +37,41 @@ def section(text: str, name: str) -> str:
 
 
 def real(value: str) -> bool:
-    stripped = value.strip().lower()
-    return bool(stripped) and stripped not in {"- none", "- none.", "none", "none.", "none yet.", "not completed yet.", "not run yet."}
+    lines = [line.strip().lstrip("- ").strip().lower() for line in value.splitlines() if line.strip()]
+    meaningful: list[str] = []
+    empty_markers = {
+        "none",
+        "none.",
+        "none yet.",
+        "n/a",
+        "na",
+        "not completed yet.",
+        "not run yet.",
+        "no blocker",
+        "no blockers",
+        "no blockers.",
+        "暂无",
+        "无",
+        "无。",
+        "没有",
+        "没有。",
+    }
+    ignored_fragments = [
+        "if needed in future",
+        "if needed later",
+        "future if needed",
+        "only if needed",
+        "未来如果需要",
+        "后续如需",
+        "暂无需",
+    ]
+    for line in lines:
+        if line in empty_markers:
+            continue
+        if any(fragment in line for fragment in ignored_fragments):
+            continue
+        meaningful.append(line)
+    return bool(meaningful)
 
 
 def run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:

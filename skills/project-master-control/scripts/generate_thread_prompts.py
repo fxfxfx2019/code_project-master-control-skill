@@ -3,36 +3,55 @@
 from __future__ import annotations
 
 import argparse
+import re
 from pathlib import Path
+
+
+def read(path: Path) -> str:
+    return path.read_text(encoding="utf-8") if path.exists() else ""
+
+
+def section(text: str, name: str) -> str:
+    marker = f"## {name}"
+    start = text.find(marker)
+    if start < 0:
+        return ""
+    start += len(marker)
+    end = text.find("\n## ", start)
+    if end < 0:
+        end = len(text)
+    return text[start:end].strip()
+
+
+def compact(value: str, limit: int = 1200) -> str:
+    lines = [line.rstrip() for line in value.splitlines() if line.strip()]
+    text = "\n".join(lines)
+    return text if len(text) <= limit else text[:limit].rstrip() + "\n..."
 
 
 def suggested_window_title(name: str) -> str:
     lower = name.lower()
+    tokens = set(re.split(r"[^a-z0-9]+", lower))
     rules = [
-        ("current-state-audit", "Audit"),
-        ("ui-ux", "UI/UX Design"),
-        ("design", "UI/UX Design"),
-        ("frontend", "Frontend"),
-        ("ui", "Frontend"),
-        ("backend", "Backend"),
-        ("platform", "Platform"),
-        ("knowledge", "Knowledge AI"),
-        ("data", "Data Connectors"),
-        ("connector", "Data Connectors"),
-        ("outbound", "Outbound"),
-        ("wecom", "WeCom"),
-        ("growth", "Growth Analytics"),
-        ("analytics", "Growth Analytics"),
-        ("delivery", "Delivery Hardening"),
-        ("hardening", "Delivery Hardening"),
-        ("test", "QA"),
-        ("acceptance", "QA"),
-        ("planning", "Planning"),
-        ("implementation", "Implementation"),
+        (lambda: "build" in tokens or "build-gate" in lower, "Build Gate"),
+        (lambda: "current-state-audit" in lower or {"current", "state", "audit"} <= tokens, "Audit"),
+        (lambda: "ui-ux" in lower or ("ui" in tokens and "ux" in tokens) or "design" in tokens, "UI/UX Design"),
+        (lambda: "frontend" in tokens or "front-end" in lower or "web" in tokens or "ui" in tokens, "Frontend"),
+        (lambda: "backend" in tokens, "Backend"),
+        (lambda: "platform" in tokens, "Platform"),
+        (lambda: "knowledge" in tokens, "Knowledge AI"),
+        (lambda: "data" in tokens or "connector" in tokens or "connectors" in tokens, "Data Connectors"),
+        (lambda: "outbound" in tokens, "Outbound"),
+        (lambda: "wecom" in tokens, "WeCom"),
+        (lambda: "growth" in tokens or "analytics" in tokens, "Growth Analytics"),
+        (lambda: "delivery" in tokens or "hardening" in tokens, "Delivery Hardening"),
+        (lambda: "test" in tokens or "acceptance" in tokens or "qa" in tokens, "QA"),
+        (lambda: "planning" in tokens, "Planning"),
+        (lambda: "implementation" in tokens, "Implementation"),
     ]
     label = "Task"
-    for token, title in rules:
-        if token in lower:
+    for matches, title in rules:
+        if matches():
             label = title
             break
     return f"Child - {label} - {name}"
@@ -55,7 +74,54 @@ def main() -> int:
     for thread in sorted(p for p in threads_dir.iterdir() if p.is_dir()):
         name = thread.name
         title = suggested_window_title(name)
-        prompt = f"""Suggested Window Title: {title}\n\n你是 {name} 子线程，不是产品经理线程。\n\n先读取并严格遵守：\n- .agents/threads/{name}/AGENTS.md\n- .agents/threads/{name}/TASK.md\n- .agents/threads/{name}/ALLOWLIST.md\n- .agents/threads/{name}/STATUS.md\n\n执行要求：\n1. 少废话，高效执行。\n2. 实现前先判断本线程任务模式 fast/standard/strict，并写入 STATUS.md。\n3. 再判断是否需要派发子 Agent，并写入 STATUS.md。\n4. 只读取 Allowed Read，除非必要并记录到 STATUS.md。\n5. 只修改 Allowed Write。\n6. 用户在本线程提出新需求、优化、范围变化、跳过测试/文档/清理、或修改未授权文件时，写入 STATUS.md 并回传产品经理线程确认，不能直接执行。\n7. 遇到越权文件、架构冲突、数据库/接口契约变化、测试口径变化、依赖变化、已有用户改动可能被覆盖时，停止并上报。\n8. 完成后运行指定验证，清理临时产物，更新 STATUS.md，写 HANDOFF.md。\n\n输出只包含：当前进度、阻塞、验证结果、风险、需要产品经理确认的问题、交付摘要。\n"""
+        task = read(thread / "TASK.md")
+        allowlist = read(thread / "ALLOWLIST.md")
+        objective = compact(section(task, "Objective") or "Read TASK.md for the objective.", 800)
+        required_steps = compact(section(task, "Required Steps") or "Read TASK.md for required steps.", 1200)
+        verification = compact(section(task, "Required Verification") or "Read TASK.md for verification commands.", 800)
+        allowed_read = compact(section(allowlist, "Allowed Read") or "Read ALLOWLIST.md.", 1200)
+        allowed_write = compact(section(allowlist, "Allowed Write") or "Read ALLOWLIST.md.", 1200)
+        requires_pm = compact(section(allowlist, "Requires Product Manager Approval") or "Read ALLOWLIST.md.", 800)
+        prompt = f"""Suggested Window Title: {title}
+
+You are the `{name}` child Codex thread. You are not the Product Manager thread.
+
+Read and follow this task package first:
+- .agents/threads/{name}/AGENTS.md
+- .agents/threads/{name}/TASK.md
+- .agents/threads/{name}/ALLOWLIST.md
+- .agents/threads/{name}/STATUS.md
+
+Task objective:
+{objective}
+
+Required steps:
+{required_steps}
+
+Required verification:
+{verification}
+
+Allowed Read:
+{allowed_read}
+
+Allowed Write:
+{allowed_write}
+
+Requires Product Manager Approval:
+{requires_pm}
+
+Execution rules:
+1. Keep responses concise and execution-focused.
+2. Before implementation, write the Task Mode Decision (fast/standard/strict) to STATUS.md.
+3. Then write the Sub-Agent Decision to STATUS.md.
+4. Read only Allowed Read files unless expansion is necessary and recorded in STATUS.md.
+5. Modify only Allowed Write files.
+6. If the user asks for new requirements, optimization, scope changes, skipped verification/docs/cleanup, or unauthorized file edits, record it in STATUS.md and send it back to the Product Manager thread before executing.
+7. Stop and report if you hit forbidden files, architecture conflicts, database/API contract changes, test-scope changes, dependency changes, or possible overwrite of existing user changes.
+8. After completion, run required verification, clean temporary artifacts, update STATUS.md, and write HANDOFF.md.
+
+Output only progress, blockers, verification results, risks, Product Manager confirmation requests, and handoff summary.
+"""
         target = out_dir / f"{name}.txt"
         target.write_text(prompt, encoding="utf-8")
         print(target)

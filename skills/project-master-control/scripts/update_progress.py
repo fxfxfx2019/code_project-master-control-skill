@@ -22,7 +22,10 @@ def section(text: str, name: str) -> str:
 def first_line(value: str, fallback: str = "Unknown") -> str:
     for line in value.splitlines():
         stripped = line.strip().lstrip("- ").strip()
-        if stripped and stripped.lower() not in {"none", "none.", "none yet.", "not completed yet."}:
+        lowered = stripped.lower()
+        if stripped and lowered not in {"none", "none.", "none yet.", "n/a", "na", "not completed yet.", "not run yet.", "暂无", "无", "无。"}:
+            if any(fragment in lowered for fragment in ["if needed in future", "if needed later", "future if needed", "only if needed", "未来如果需要", "后续如需", "暂无需"]):
+                continue
             return stripped
     return fallback
 
@@ -33,6 +36,22 @@ def read(path: Path) -> str:
 
 def flat(value: str) -> str:
     return "; ".join(line.strip() for line in value.splitlines() if line.strip())
+
+
+def real(value: str) -> bool:
+    return first_line(value, "") != ""
+
+
+def preserve_manual_override(existing: str) -> str:
+    if not existing:
+        return ""
+    marker = "## Product Manager Override"
+    start = existing.find(marker)
+    if start < 0:
+        return ""
+    end = existing.find("\n## ", start + len(marker))
+    block = existing[start:] if end < 0 else existing[start:end]
+    return block.strip() + "\n\n" if block.strip() else ""
 
 
 def main() -> int:
@@ -68,10 +87,10 @@ def main() -> int:
         handoff_risks = section(handoff, "Risks")
         next_resume = first_line(section(status, "Next Resume Step"), "Continue assigned task")
 
-        if summary and "Not completed yet" not in summary:
+        if real(summary):
             state = "handoff-ready"
             completed.append(f"- {thread.name}: {first_line(summary)}")
-        elif blocker and "None" not in blocker:
+        elif real(blocker):
             state = "blocked"
         elif "Waiting" in step or "Not started" in step:
             state = "pending"
@@ -80,11 +99,11 @@ def main() -> int:
             in_progress.append(f"- {thread.name}: {step}")
 
         rows.append(f"| {thread.name} | {state} | {goal} | {step} |")
-        if blocker and "None" not in blocker:
+        if real(blocker):
             blockers.append(f"- {thread.name}: {flat(blocker)}")
-        if pending and "None" not in pending:
+        if real(pending):
             confirmations.append(f"- {thread.name}: {flat(pending)}")
-        if handoff_risks and "None" not in handoff_risks:
+        if real(handoff_risks):
             risks.append(f"- {thread.name}: {flat(handoff_risks)}")
         if verification and "Not run" in verification:
             risks.append(f"- {thread.name}: verification not run")
@@ -97,7 +116,9 @@ def main() -> int:
     else:
         overall_status = "initialized"
 
-    content = "\n".join([
+    existing_progress = read(agents / "PROGRESS.md")
+    override = preserve_manual_override(existing_progress)
+    content = override + "\n".join([
         "# PROGRESS", "", "## Stage", "", args.stage, "",
         "## Overall Status", "", overall_status, "",
         "## Thread Progress", "", "| Thread | Status | Goal | Current Step |", "| --- | --- | --- | --- |", *rows, "",
