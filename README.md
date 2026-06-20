@@ -6,3 +6,5 @@ Documentation:
 
 - [English](README.en.md)
 - [中文](README.zh-CN.md)
+- [Detailed usage guide](docs/USAGE.en.md)
+- [详细使用手册](docs/USAGE.zh-CN.md)

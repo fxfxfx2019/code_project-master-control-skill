@@ -22,7 +22,7 @@
 
 ```text
 从下面路径安装 Codex skill：
-https://github.com/<owner>/<repo>/tree/main/skills/project-master-control
+https://github.com/fxfxfx2019/code_project-master-control-skill/tree/main/skills/project-master-control
 ```
 
 安装后需要重启 Codex，新的 skill 才会被发现。
@@ -42,6 +42,8 @@ https://github.com/<owner>/<repo>/tree/main/skills/project-master-control
 ```
 
 启用后，Product Manager 线程应该创建或更新 `AGENTS.md`，生成 `.agents/**`，校验任务包，在线程工具可用时创建真实子线程或 worktree，并持续执行产品经理 loop，直到阶段验收、阻塞或进入等待子线程反馈状态。
+
+完整流程、命令参考和运行原理见：[详细使用手册](docs/USAGE.zh-CN.md)。
 
 子线程结果被接收或合并后，可以运行：
 

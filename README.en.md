@@ -22,7 +22,7 @@ Ask Codex to install the skill from this repository path:
 
 ```text
 Install the Codex skill from:
-https://github.com/<owner>/<repo>/tree/main/skills/project-master-control
+https://github.com/fxfxfx2019/code_project-master-control-skill/tree/main/skills/project-master-control
 ```
 
 After installation, restart Codex so the skill can be discovered.
@@ -42,6 +42,8 @@ Enable project-master-control and take over the current existing project for sec
 ```
 
 The Product Manager thread should then create or update `AGENTS.md`, generate `.agents/**`, validate task packages, create real child threads or worktrees when thread tools are available, and continue the manager loop until the stage is accepted, blocked, or waiting for child feedback.
+
+For the full workflow, command reference, and operating model, see [Detailed usage guide](docs/USAGE.en.md).
 
 After child work is accepted or merged, use:
 
