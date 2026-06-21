@@ -36,6 +36,21 @@ Child threads own only their assigned task package:
 
 Child threads must not expand scope, write outside their allowlist, or merge directly.
 
+When a child thread finishes, blocks, or needs a Product Manager decision, it must prepare one `PM_FEEDBACK` message for the Product Manager thread:
+
+```text
+PM_FEEDBACK
+Thread: <thread-name>
+Status: completed | blocked | needs-product-manager-decision | rework-complete
+Summary: <one-line result>
+Verification: <pass/fail/not-run and command summary>
+Risks: <none or concise risk>
+Handoff: .agents/threads/<thread-name>/HANDOFF.md
+Next: review | rework | user-decision | unblock-next
+```
+
+If `send_message_to_thread` is available and the Product Manager thread id is known, the child thread should send this message back directly. Otherwise it should write the message in `HANDOFF.md` and include it in its final response.
+
 ## When To Use
 
 Use this skill for:
@@ -129,6 +144,8 @@ Possible outcomes:
 - run stage acceptance.
 
 `waiting_for_child_feedback` is a valid pause state. It means child threads are still running and no handoff is ready.
+
+A received `PM_FEEDBACK` message is a wake signal. The Product Manager should run the loop, review the referenced `HANDOFF.md`, and decide accept, rework, ask user, unblock the next phase, create more threads, or stage acceptance.
 
 ## Review And Merge
 

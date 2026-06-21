@@ -36,6 +36,21 @@ Product Manager 线程负责：
 
 子线程不能自行扩大范围，不能写 ALLOWLIST 之外的文件，不能直接合并主干。
 
+当子线程完成、阻塞或需要 Product Manager 决策时，必须准备一条 `PM_FEEDBACK` 消息回馈给 Product Manager 线程：
+
+```text
+PM_FEEDBACK
+Thread: <thread-name>
+Status: completed | blocked | needs-product-manager-decision | rework-complete
+Summary: <one-line result>
+Verification: <pass/fail/not-run and command summary>
+Risks: <none or concise risk>
+Handoff: .agents/threads/<thread-name>/HANDOFF.md
+Next: review | rework | user-decision | unblock-next
+```
+
+如果子线程可用 `send_message_to_thread`，并且知道 Product Manager 线程 id，就应该直接把这条消息发回主线程。否则必须把这条消息写入 `HANDOFF.md`，并放在最终回复里。
+
 ## 适合什么时候用
 
 适合：
@@ -129,6 +144,8 @@ python scripts/pmc.py loop --project-root . --stage <stage>
 - 进行阶段验收。
 
 `waiting_for_child_feedback` 是有效暂停状态。它表示子线程仍在执行，当前没有可 review 的 handoff。
+
+收到 `PM_FEEDBACK` 消息后，Product Manager 应把它视为唤醒信号：运行 loop，review 对应的 `HANDOFF.md`，然后判断 accept、rework、ask-user、unblock-next-phase、create-more-threads 或 stage-acceptance。
 
 ## Review 与合并
 

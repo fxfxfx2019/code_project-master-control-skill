@@ -127,6 +127,29 @@ When entering this state, the product manager thread must:
 - avoid saying the project/stage is complete or accepted.
 
 `waiting_for_child_feedback` is a pause between dispatch and review. On the next user message, child update, or heartbeat, the product manager must run the loop again and decide wait, accept, rework, ask user, unblock next phase, create more threads, or stage acceptance.
+
+## Child Completion Feedback To Product Manager
+
+Every child thread must send or prepare one concise completion feedback message for the Product manager thread after it finishes, blocks, or needs a product-manager decision.
+
+Required feedback format:
+
+```text
+PM_FEEDBACK
+Thread: <thread-name>
+Status: completed | blocked | needs-product-manager-decision | rework-complete
+Summary: <one-line result>
+Verification: <pass/fail/not-run and command summary>
+Risks: <none or concise risk>
+Handoff: .agents/threads/<thread-name>/HANDOFF.md
+Next: review | rework | user-decision | unblock-next
+```
+
+The child thread must write the same message to `HANDOFF.md` under `## Product Manager Feedback Message`.
+
+If `send_message_to_thread` is available and the Product manager thread id is known from the prompt or task package, the child thread must send this message to the Product manager thread. If the tool is unavailable or the Product manager thread id is unknown, the child thread must include the message in its final response so the user or Product manager can paste it back.
+
+The Product manager thread must treat a received `PM_FEEDBACK` message as a wake signal: run `pmc.py loop`, review the referenced `HANDOFF.md`, and decide accept, rework, ask user, unblock next phase, create more threads, or stage acceptance.
 ## Product Manager Thread Title
 
 After enablement, attempt to rename the product manager thread to `Product Manager - <project-or-stage-name>` using available thread title tools.
@@ -265,8 +288,9 @@ Required sequence:
    - Use local/same-directory only when file locks are disjoint and worktree is unnecessary or unavailable.
    - Use `fork_thread` as fallback when project creation tools are unavailable.
 7. Send each child thread only its generated prompt and task package path; the prompt must include `Suggested Window Title` with an English task/function title.
-8. Record each returned `threadId` or `pendingWorktreeId` and the suggested window title in `.agents/THREADS.md` and `.agents/PROGRESS.md` when useful.
-9. Continue tracking child threads. Do not stop at “planning complete” unless no thread tool is available or the user asked to stop.
+8. If the Product manager thread id is available, include it in the child prompt or task package as the feedback target for `PM_FEEDBACK`.
+9. Record each returned `threadId` or `pendingWorktreeId` and the suggested window title in `.agents/THREADS.md` and `.agents/PROGRESS.md` when useful.
+10. Continue tracking child threads. Do not stop at “planning complete” unless no thread tool is available or the user asked to stop.
 
 If no Codex thread tool is available, state that real child-thread creation is unavailable in the current environment and provide `.agents/thread-prompts/*.txt` for manual thread startup.
 

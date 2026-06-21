@@ -392,8 +392,9 @@
 4. 检查通过后生成子线程启动 prompt。
 5. 调用 Codex 线程工具创建真实子线程：优先 `list_projects` + `create_thread`，必要时用 worktree；不可用时 fallback 到 `fork_thread`。
 6. 每个子线程只接收自己的启动 prompt 和任务包路径。
-7. 把返回的 `threadId` 或 `pendingWorktreeId` 写入 `.agents/THREADS.md` 和 `.agents/PROGRESS.md`。
-8. 产品经理线程持续跟踪子线程状态，不能停在“规划完成”。
+7. 如果产品经理线程 id 可获得，必须把它作为 `PM_FEEDBACK` 回传目标写入子线程 prompt 或任务包。
+8. 把返回的 `threadId` 或 `pendingWorktreeId` 写入 `.agents/THREADS.md` 和 `.agents/PROGRESS.md`。
+9. 产品经理线程持续跟踪子线程状态，不能停在“规划完成”。
 
 如果当前环境没有可用的 Codex 线程工具，产品经理线程必须明确告诉用户无法自动创建真实子线程，并提供 `.agents/thread-prompts/*.txt` 供用户手动启动。
 
@@ -525,6 +526,27 @@ waiting_for_child_feedback
 - 不得把该状态表述为项目完成、阶段完成或验收完成。
 
 下一次收到子线程反馈后，产品经理线程必须重新进入产品经理循环，判断 accept/rework/ask-user/unblock-next-phase/create-more-threads/stage-acceptance。
+
+## 9.7.2 子线程完成后回馈产品经理线程
+
+每个子线程完成、阻塞或需要产品经理决策时，必须生成一条标准化回馈消息：
+
+```text
+PM_FEEDBACK
+Thread: <thread-name>
+Status: completed | blocked | needs-product-manager-decision | rework-complete
+Summary: <one-line result>
+Verification: <pass/fail/not-run and command summary>
+Risks: <none or concise risk>
+Handoff: .agents/threads/<thread-name>/HANDOFF.md
+Next: review | rework | user-decision | unblock-next
+```
+
+子线程必须把同一条消息写入 `HANDOFF.md` 的 `## Product Manager Feedback Message`。
+
+如果子线程可用 `send_message_to_thread`，并且任务包或 prompt 中提供了产品经理线程 id，子线程必须把这条消息发回产品经理线程。如果工具不可用或不知道产品经理线程 id，子线程必须把这条消息放在最终回复中，供用户或产品经理线程复制回主线程。
+
+产品经理线程收到 `PM_FEEDBACK` 后，必须把它视为唤醒信号：运行 `pmc.py loop`，review 对应 `HANDOFF.md`，然后判断 accept/rework/ask-user/unblock-next-phase/create-more-threads/stage-acceptance。
 ## 9.8 产品经理循环
 
 子线程派发后，产品经理线程必须进入循环。派发不是完成。

@@ -45,7 +45,7 @@ Stop when you need forbidden files, architecture changes, database/interface con
 
 ## Completion
 
-Run required verification, clean temporary artifacts, update STATUS.md, write HANDOFF.md, and list any durable project documents that should be updated or merged by the product manager thread.
+Run required verification, clean temporary artifacts, update STATUS.md, write HANDOFF.md, list any durable project documents that should be updated or merged by the product manager thread, and prepare/send the Product Manager feedback message.
 ```
 
 ## TASK.md
@@ -317,6 +317,19 @@ Not completed yet.
 ## Completion Documents
 
 - None yet.
+
+## Product Manager Feedback Message
+
+```text
+PM_FEEDBACK
+Thread: <thread-name>
+Status: completed | blocked | needs-product-manager-decision | rework-complete
+Summary: <one-line result>
+Verification: <pass/fail/not-run and command summary>
+Risks: <none or concise risk>
+Handoff: .agents/threads/<thread-name>/HANDOFF.md
+Next: review | rework | user-decision | unblock-next
+```
 
 ## Boundary Check
 

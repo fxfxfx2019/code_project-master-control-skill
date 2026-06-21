@@ -119,6 +119,19 @@ Execution rules:
 6. If the user asks for new requirements, optimization, scope changes, skipped verification/docs/cleanup, or unauthorized file edits, record it in STATUS.md and send it back to the Product Manager thread before executing.
 7. Stop and report if you hit forbidden files, architecture conflicts, database/API contract changes, test-scope changes, dependency changes, or possible overwrite of existing user changes.
 8. After completion, run required verification, clean temporary artifacts, update STATUS.md, and write HANDOFF.md, including Completion Documents when durable project docs should be updated or merged by the Product Manager thread.
+9. Write a `PM_FEEDBACK` message to HANDOFF.md under `## Product Manager Feedback Message`. If `send_message_to_thread` is available and the Product Manager thread id is known from the task package or prompt, send the same message to that thread. Otherwise include the message in your final response.
+
+Required PM_FEEDBACK format:
+```text
+PM_FEEDBACK
+Thread: {name}
+Status: completed | blocked | needs-product-manager-decision | rework-complete
+Summary: <one-line result>
+Verification: <pass/fail/not-run and command summary>
+Risks: <none or concise risk>
+Handoff: .agents/threads/{name}/HANDOFF.md
+Next: review | rework | user-decision | unblock-next
+```
 
 Output only progress, blockers, verification results, risks, Product Manager confirmation requests, and handoff summary.
 """
