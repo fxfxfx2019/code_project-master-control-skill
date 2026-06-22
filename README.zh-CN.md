@@ -1,18 +1,12 @@
-# Codex Skills
+# project-master-control
 
-这个仓库发布可复用的 Codex skills。
+`project-master-control` 是一个给 Codex 使用的 skill，用于“产品经理线程 + 子线程/worktree”的多线程项目协作。
 
 这个仓库用于 **Codex skill 安装**。它不是普通的 npm 包、Python 包或应用项目。
 
-## 包含的 Skills
+## 它解决什么问题
 
-- `project-master-control`：用于“产品经理线程 + 子线程/worktree”的多线程项目协作。
-- `gpt-chat`：通过本地 GPT-CHAT / ChatGPT web wrapper 服务，让 Codex 咨询保留上下文的 ChatGPT。
-- `gpt-chat-temp`：通过 temporary-chat 模式进行隔离的 GPT 分析，不依赖历史上下文。
-
-## project-master-control
-
-`project-master-control` 帮助 Codex 按受控方式推进项目：
+这个 skill 帮助 Codex 按受控方式推进项目：
 
 - 由 Product Manager 线程负责需求、规划、派发、验收、返工和合并判断；
 - 由子 Codex 线程或 worktree 执行有边界的模块任务；
@@ -24,17 +18,11 @@
 
 ## 安装
 
-让 Codex 从下面任一路径安装对应 skill：
+让 Codex 从这个 GitHub 路径安装 skill：
 
 ```text
 从下面路径安装 Codex skill：
 https://github.com/fxfxfx2019/code_project-master-control-skill/tree/main/skills/project-master-control
-
-从下面路径安装 Codex skill：
-https://github.com/fxfxfx2019/code_project-master-control-skill/tree/main/skills/gpt-chat
-
-从下面路径安装 Codex skill：
-https://github.com/fxfxfx2019/code_project-master-control-skill/tree/main/skills/gpt-chat-temp
 ```
 
 安装后需要重启 Codex，新的 skill 才会被发现。
@@ -56,7 +44,6 @@ https://github.com/fxfxfx2019/code_project-master-control-skill/tree/main/skills
 启用后，Product Manager 线程应该创建或更新 `AGENTS.md`，生成 `.agents/**`，校验任务包，在线程工具可用时创建真实子线程或 worktree，并持续执行产品经理 loop，直到阶段验收、阻塞或进入等待子线程反馈状态。
 
 完整流程、命令参考和运行原理见：[详细使用手册](docs/USAGE.zh-CN.md)。
-GPT-CHAT 的配置和使用方式见：[GPT-CHAT 使用说明](docs/GPT_CHAT.zh-CN.md)。
 
 子线程结果被接收或合并后，可以运行：
 
@@ -74,14 +61,6 @@ skills/
     SKILL.md
     agents/openai.yaml
     references/
-    scripts/
-  gpt-chat/
-    SKILL.md
-    agents/openai.yaml
-    scripts/
-  gpt-chat-temp/
-    SKILL.md
-    agents/openai.yaml
     scripts/
 ```
 
